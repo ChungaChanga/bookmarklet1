@@ -4040,15 +4040,7 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
   border: 1px solid #ddd;
   border-bottom-color: transparent;
 }
-.nav-tabs-left > li.active > a,
-.nav-tabs-left > li.active > a:hover,
-.nav-tabs-left> li.active > a:focus {
-  color: #555;
-  cursor: default;
-  background-color: #fff;
-  border: 1px solid #ddd;
-  border-right-color: transparent;
-}
+
 .nav-tabs.nav-justified {
   width: 100%;
   border-bottom: 0;
@@ -6764,3 +6756,33 @@ button.close {
   }
 }
 /*# sourceMappingURL=bootstrap.css.map */
+
+/*bookmarklet rules*/
+
+.nav-tabs-left > li.active > a,
+.nav-tabs-left > li.active > a:hover,
+.nav-tabs-left> li.active > a:focus {
+  color: #555;
+  cursor: default;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-right-color: transparent;
+}
+#pfx12sd43pfxbookmarklet {
+	font-family: sans-serif;
+	-webkit-text-size-adjust: 100%;
+	-ms-text-size-adjust: 100%;
+   width : 500px;
+  box-sizing : border-box;
+ /* overflow: auto;*/
+  border: 2px solid;
+  position: fixed;
+  top : 0px;
+  right : 0px;
+  z-index: 1000;
+  margin: 0;
+  background: white;
+}
+#pfx12sd43pfxworkSpace{
+  margin-top: 15px;
+}

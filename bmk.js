@@ -387,23 +387,22 @@ var view = (function() {
       2. Добавлен класс nav-tabs-left основанный на классе nav-tabs
     */
     var widget, //HTMLElement - корневой элемент букмарклета
-     // resultBlock, //HTMLElement - контейнер для результата перевода
-     // labelBlock, //HTMLElement - контейнер для label(информация обязательная к показу по условиям использования API)
+      resultBlock, //HTMLElement - контейнер для результата перевода
+      labelBlock, //HTMLElement - контейнер для label(информация обязательная к показу по условиям использования API)
       builderResultBlock, // функция преобразования рез-та в HTML
       widgetInnerHTML = '';//строка - HTML содержимое виджета
       
     widgetInnerHTML = 
     '<div class="container-fluid">' +
       '<div class="row bg-primary">' +
-        '<div class="col-xs-9 input-group pull-left">' +
-          '<span class="input-group-addon">Направление перевода</span>'+
+        '<div class="col-xs-6">' +
           '<select id="selectLang" class="form-control input-sm">'+
             '<option selected="" value="en-ru">Английский - Русский</option>'+
             '<option value="ru-en">Русский - Английский</option>'+
            ' <option value="ru-ru">Русский - Русский</option>'+
           '</select>'+
        ' </div>'+
-        '<div id="toggleButton"  class=" col-xs-1 col-xs-offset-1 btn btn-default btn-sm">'+
+        '<div id="toggleButton"  class=" col-xs-1 col-xs-offset-4 btn btn-default btn-sm">'+
           '<span class="glyphicon glyphicon-minus" aria-hidden="true"></span>'+
         '</div>'+
         '<div id="closeButton" class="col-xs-1 btn btn-default btn-sm">'+
@@ -442,7 +441,7 @@ var view = (function() {
     затем функция переопределяет сама себя,
     и при след. вызове будет работать с уже найденным элементом через замыкание*/
     function reloadResultBlock(/*string HTML*/ result) {
-      var resultBlock = getById('resultBlock', prefix);
+      resultBlock = getById('resultBlock', prefix);
       reloadResultBlock = function(result) {
         var htmlResult = builderResultBlock(result);
         resultBlock.innerHTML = htmlResult;
@@ -450,8 +449,8 @@ var view = (function() {
       reloadResultBlock(result);
     }
     function reloadLabelBlock(/*string HTML*/ label) {
-      var labelBlock = getById('labelBlock', prefix);
-      reloadLabelBlock = function(label) {
+      labelBlock = getById('labelBlock', prefix);
+      reloadLabelBlock = function() {
         labelBlock.innerHTML = `<p class='text-center'>${label}</p>`;
       }
       reloadLabelBlock(label);
@@ -496,100 +495,57 @@ var view = (function() {
         '</div>';
       return html;
     }
-    
-    
-    /*function result2List(resultTranslate) {
 
-      var html = dl = '';
-      (function() {
-        dl = '<dl class="nav nav-tabs">';
-        for(var i = 0; i < resultTranslate.length; i++) {
-          
-          dl += `
-                <dt class="presentation">
-                  ${resultTranslate[i].formOfWord}
-                  <span class="text-info">
-                    ${resultTranslate[i].partOfSpeach}
-                  </span>
-                </dt>`;
-          var arr = resultTranslate[i].variants;
-          for(var j = 0; j < arr.length; j++) {
-            dl += `<dd>${arr[j]}</dd>`;
-          }
-        }
-        dl += '</dl>';
-      })();   
-      html = dl;
-      return html;
-    }*/
     function result2List(resultTranslate) {
-
-      var html = nav = tabContent = '';
+      //итоговая HTML строка которая будет встраиваться в блок представления результата
+      var html =  
+      nav = // часть html, будет содержать bootstrap Nav tabs 
+      tabContent = ''; // часть html, будет содержать bootstrap Tab panes
+      //самовызывающаяся ф-ия нужна только для наглядности, в ней формируются nav и tabContent
       (function() {
+        //эти переменные активируют первый элемент результата и переопределяться в пустую строку
+        var activeClass = " active ", inClass = " in ";
         nav += '<ul id="#' 
           + prefix + 'navVariants" class="nav nav-tabs-left nav-stacked" role="tablist">';
         tabContent += '<div class="tab-content">';
         for(var i = 0; i < resultTranslate.length; i++) {
           nav +=   
-            '<li role="presentation" >'+
+            '<li role="presentation" class="' + activeClass + '">'+
               '<a href=#'
-                + prefix + i + 
+                + prefix + i + //уникальный идентификатор, чтобы избежать конфлитка со страницей
                 '" aria-controls="home" role="tab" data-toggle="tab">' +
-                resultTranslate[i].formOfWord +'</br>(' + resultTranslate[i].partOfSpeach +')'+
+                resultTranslate[i].formOfWord +
+                '</br><em>(' + resultTranslate[i].partOfSpeach +')</em>'+
               '</a>'+
             '</li>';
             
           arr = resultTranslate[i].variants;
-         // if (i === 1) { var act = 'in active';} else {act = '';}
-          tabContent  += '<div role="tabpanel" class="tab-pane" id="'
+          tabContent  += 
+          '<div role="tabpanel" class="tab-pane well' + activeClass + inClass + '" id="'
             + prefix + i +
-            '">';
+            '"><ul class="list-unstyled">';
           for(var j = 0; j < arr.length; j++) {
-            tabContent += '<p>' +arr[j] + '</p>';
+            tabContent += '<li>' +arr[j] + '</li>';
           }
-          tabContent += '</div>';
+          tabContent += '</ul></div>';
+          //эти классы добавляются только для первого элемента, чтобы активизировать его
+          activeClass = inClass = '';
         }
         nav += '</ul>';
         tabContent += '</div>';
       })();
           
       html =
-        '<div class="row">' +
           '<div class="col-xs-6">' +
             nav +
           '</div>' +
-          tabContent +
-        '</div>';
+          '<div class="col-xs-6">' +
+            tabContent +
+          '</div>';
       return html;
     }
-    
-    
-    /*function result2List(resultTranslate) {
-
-      var html = dl = '';
-      (function() {
-        dl = '<dl>';
-        for(var i = 0; i < resultTranslate.length; i++) {
-          
-          dl += `  
-                <dt>
-                  ${resultTranslate[i].formOfWord}
-                  <span class="text-info text-center">
-                    ${resultTranslate[i].partOfSpeach}
-                  </span>
-                </dt>`;
-          var arr = resultTranslate[i].variants;
-          for(var j = 0; j < arr.length; j++) {
-            dl += `<dd>${arr[j]}</dd>`;
-          }
-        }
-        dl += '</dl>';
-      })();   
-      html = dl;
-      return html;
-    }*/
     function result2Sentence(result) {
-      return '<p class="text-info text-center">' + result + '</p>';
+      return '<div class="col-xs-12"><p class="well">' + result + '</p></div>';
     }
     
     /*Добавление префикса ко всем id в HTML-разметке букмарклета*/
@@ -621,6 +577,9 @@ var view = (function() {
         }
         return widget;
       },
+      getResultBlock: function() {
+        return resultBlock;
+      },
       selectTemplate: function(template) {
         switch (template) { 
         case 'table': builderResultBlock = result2Table;
@@ -641,48 +600,50 @@ var view = (function() {
   eventHandler = (function() {
     var widget, listeners = [];
     
-    var toggle = (function() {
-      var a;
-      function toggleVariantsTranslate(event) {
-        var target = event.target;
-        //selectedNav, selectedContent, 
-        // цикл двигается вверх от target к родителям до table
-        while (target != this) {
-          
-          if (target.tagName.toLowerCase() == 'a') {
-            // нашли элемент, который нас интересует!
-            console.log(a)
-            if (a) {
-              unselectVariantTranslate(a);
+    
+    function toggleVariantsTranslate(event) {
+      var target = event.target,
+      descendants,
+      length;
+      //selectedNav, selectedContent, 
+      // цикл двигается вверх от target к родителям до table
+      while (target != this) {
+        
+        if (target.tagName.toLowerCase() == 'a') {
+          // нашли элемент, который нас интересует!
+          descendants = HTML.getResultBlock().getElementsByTagName('*');
+          length = descendants.length;
+          for (var i = 0; i < length; i++) {
+            if ( descendants[i].classList.contains('active') ) {
+              descendants[i].classList.remove('active');
             }
-            a = target;
-            selectVariantTranslate(a)
-            return;
+            if ( descendants[i].classList.contains('in') ) {
+              descendants[i].classList.remove('in');
+            }
           }
-          target = target.parentNode;
+          selectVariantTranslate(target)
+          return;
         }
-       
+        target = target.parentNode;
       }
-      function unselectVariantTranslate(a) {
-        var selectedNav, selectedContent;
-        selectedNav = a.parentNode;
-        selectedContent = document.getElementById(a.getAttribute('href').slice(1, -1));
-        selectedNav.classList.remove('active');
-        selectedContent.classList.remove('in');
-        selectedContent.classList.remove('active');
-      }
-      function selectVariantTranslate(a) {
-        var selectedNav, selectedContent;
-        selectedNav = a.parentNode;
-        selectedContent = document.getElementById(a.getAttribute('href').slice(1, -1));
-        selectedNav.classList.add('active');
-        selectedContent.classList.add('in');
-        selectedContent.classList.add('active');
-      }
-      return {
-        toggleVariantsTranslate: toggleVariantsTranslate
-      }
-    })();
+     
+    }
+   /* function unselectVariantTranslate(a) {
+      var selectedNav, selectedContent;
+      selectedNav = a.parentNode;
+      selectedContent = document.getElementById(a.getAttribute('href').slice(1, -1));
+      selectedNav.classList.remove('active');
+      selectedContent.classList.remove('in');
+      selectedContent.classList.remove('active');
+    }*/
+    function selectVariantTranslate(a) {
+      var selectedNav, selectedContent;
+      selectedNav = a.parentNode;
+      selectedContent = document.getElementById(a.getAttribute('href').slice(1, -1));
+      selectedNav.classList.add('active');
+      selectedContent.classList.add('in');
+      selectedContent.classList.add('active');
+    }
     
     /*Здесь хранятся данные о событиях, 
     некоторые данные генерируются динамически,
@@ -752,7 +713,7 @@ var view = (function() {
         {
           DOMElement: getById('resultBlock', prefix),
           eventType: 'click',
-          callback: toggle.toggleVariantsTranslate
+          callback: toggleVariantsTranslate
         }
       ];
     }
