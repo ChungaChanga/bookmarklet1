@@ -1,21 +1,10 @@
 var mediator, assign, APILib, courier, view; 
-function ErrorRequest() {
-  Error.call(this) ;
-  this.name = 'ErrorRequest';
-  this.message = 'Ошибка обращения к API ';
 
-  if (Error.captureStackTrace) {
-    Error.captureStackTrace(this, ErrorRequest);
-  } else {
-    this.stack = (new Error()).stack;
-  }
-}
-ErrorRequest.prototype = Object.create(Error.prototype);
 
 var assign = (function() {
   var text = '',
   lang = 'en-ru', // направление перевода
-  ui = 'ru',
+  ui = 'ru', //
   flags = 0x000c;
   function getParams() {
     return {
@@ -49,7 +38,7 @@ var assign = (function() {
 
 var APILib = (function() {
   
-  var yandexDictionary, yandexInterpreter;
+  var yandexDictionaryAPI, yandexInterpreterAPI;
   
   
   
@@ -71,7 +60,7 @@ var APILib = (function() {
         413 : ['Превышен максимальный размер текста.',true],
         501 : ['Заданное направление перевода не поддерживается.']
     },
-    label : '«Реализовано с помощью сервиса' +
+    label : '«Реализовано с помощью сервиса ' +
       '<a href=\'https://tech.yandex.ru/dictionary/\'>«Яндекс.Словарь»</a>',
     reformateResponse : function(responseObject) {
       responseObject = JSON.parse(responseObject);
@@ -111,7 +100,7 @@ var APILib = (function() {
         422 : ['Текст не может быть переведен.'],
         501 : ['Заданное направление перевода не поддерживается.']
     },
-    label : '«Переведено сервисом' + 
+    label : '«Переведено сервисом ' + 
     '<a href=\'http://translate.yandex.ru/\'>«Яндекс.Переводчик»</a>',
     reformateResponse : function(responseObject) {
       responseObject = JSON.parse(responseObject);
@@ -290,18 +279,24 @@ var mediator = (function() {
     mediator.translateCompleted(result);/////////////////////////////////Ошибка - потерян контекст this,
   }
   function translateCompleted(result) {
-    if ( assign.isOneWord() ) {
-      view.selectTemplate('list') // HTML шаблон представления результата перевода 
+    if (result.length > 0) {// Если есть какой-то результат перевода
+      /*Выбор шаблона представления результата.
+        Связан с выбором API. API Яндекс-словаря возвращает несколько вариантов перевода,
+        а API Яндекс-переводчика только 1 вариант*/
+      if ( assign.isOneWord() ) {
+        view.selectTemplate('list')
+      } else {
+        view.selectTemplate('string')
+      }
+      view.reloadResultBlock( result );
+      view.reloadLabelBlock( API.getLabel() );
+      API.addToCache(assign.toString(), result);
     } else {
-      view.selectTemplate('string')
+      view.selectTemplate('notice');
+      view.reloadResultBlock( 'Не найдено ни одного варианта перевода текста: <mark>' + 
+        assign.getParams().text +
+        '</mark>. Возможно, следует поменять направление перевода' );
     }
-    view.reloadResultBlock( result );
-    //console.dir(API.getLabel());
-    view.reloadLabelBlock( API.getLabel() );
-    //view.showWidget();
-    API.addToCache(assign.toString(), result);
-    //console.dir(API.getCache());
-    //console.dir(API.getCache());
   }
   
   function errorRequestDetected(err) {
@@ -441,6 +436,7 @@ var view = (function() {
     затем функция переопределяет сама себя,
     и при след. вызове будет работать с уже найденным элементом через замыкание*/
     function reloadResultBlock(/*string HTML*/ result) {
+      //console.log(result)
       resultBlock = getById('resultBlock', prefix);
       reloadResultBlock = function(result) {
         var htmlResult = builderResultBlock(result);
@@ -547,7 +543,9 @@ var view = (function() {
     function result2Sentence(result) {
       return '<div class="col-xs-12"><p class="well">' + result + '</p></div>';
     }
-    
+    function showNotice(text) {
+      return '<div class="col-xs-12"><p class="text-danger text-center">' + text + '</p></div>';
+    }
     /*Добавление префикса ко всем id в HTML-разметке букмарклета*/
     function addPrefixes(prefix) {
       // добавление префикса к id кореневого элемента
@@ -587,6 +585,8 @@ var view = (function() {
         case 'string': builderResultBlock = result2Sentence;
           break;
         case 'list': builderResultBlock = result2List;
+          break;
+        case 'notice': builderResultBlock = showNotice;
           break;
         }
       },
